@@ -1,0 +1,23 @@
+- name: Restore MySQL database from a backup
+  hosts: myhosts
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+    db_name: "sqldemo"
+    db_user: "root"
+    db_password: "demo"
+
+  tasks:
+    - name: Drop the database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: absent
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+      ignore_errors: yes
+
+    - name: Verify drop
+      mysql_db:
+        name: "{{ db_name }}"
+        state: absent
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"

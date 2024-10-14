@@ -1,0 +1,54 @@
+- name: Restore MySQL database from a backup
+  hosts: myhosts
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+    backup_dir: "/tmp/backups/"
+    db_name: "sqldemo"
+    db_user: "root"
+    db_password: "demo"
+
+  tasks:
+    - name: Check if the backup file exists
+      stat:
+        path: "{{ backup_file }}"
+      register: backup_check
+
+    - name: Fail if the backup file is not found
+      fail:
+        msg: "Backup file {{ backup_file }} does not exist"
+      when: not backup_check.stat.exists
+
+    # - name: Drop the existing database (optional, if you want to start fresh)
+    #   mysql_db:
+    #     name: "{{ db_name }}"
+    #     state: absent
+    #     login_user: "{{ db_user }}"
+    #     login_password: "{{ db_password }}"
+    #   ignore_errors: yes
+
+    - name: Recreate the database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+
+    - name: Restore the database from the backup file
+      mysql_db:
+        name: "{{ db_name }}"
+        state: import
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        target: "{{ backup_file }}"
+
+    - name: Verify restore by counting rows in the users table
+      mysql_query:
+        login_db: "{{ db_name }}"
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        query: "SELECT COUNT(*) FROM users;"
+      register: row_count
+
+    - name: Display row count
+      debug:
+        var: row_count

@@ -1,0 +1,32 @@
+- name: Initialize Demo Database
+  hosts: myhosts
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+  tasks:
+    - name: Install MySQL server
+      apt:
+        name: mysql-server
+        state: present
+        update_cache: yes
+
+    - name: Check if MySQL is running
+      ansible.builtin.service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Install PyMySQL
+      apt:
+        name: python3-pymysql
+        state: present
+        update_cache: yes
+
+    # Password shouldn't be hardcoded like this but just for demo purposes
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        password: demo
+        login_user: root
+        login_password: demo
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        column_case_sensitive: false

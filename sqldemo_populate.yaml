@@ -1,0 +1,50 @@
+- name: Populate SQL Demo with dummy data
+  hosts: myhosts
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+    login_user: root
+    login_password: demo
+  tasks:
+    - name: Create database if not exists
+      mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        name: sqldemo
+        state: present
+        login_user: root
+        login_password: demo
+
+    - name: Create table
+      mysql_query:
+        login_db: sqldemo
+        login_user: root
+        login_password: demo
+        query: >
+          CREATE TABLE IF NOT EXISTS sqldemo.users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE
+          )
+
+    - name: Insert dummy data
+      mysql_query:
+        login_db: sqldemo
+        login_user: root
+        login_password: demo
+        query: >
+          INSERT INTO sqldemo.users (name, email) VALUES
+            ('Salah Adawi', 'salah.adawi@example.com'),
+            ('Salah2 Adawi2', 'salah2.adawi2@example.com'),
+            ('Salah3 Adawi3', 'salah3.adawi3@example.com'),
+            ('Salah4 Adawi4', 'salah4.adawi4@example.com');
+
+    - name: Get all users
+      mysql_query:
+        query: SELECT * FROM sqldemo.users
+        login_db: sqldemo
+        login_user: root
+        login_password: demo
+      register: users
+
+    - name: Print users
+      debug:
+        var: users

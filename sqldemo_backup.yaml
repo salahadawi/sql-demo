@@ -1,0 +1,43 @@
+- name: Perform MySQL backup
+  hosts: myhosts
+  vars:
+    ansible_python_interpreter: /usr/bin/python3.12
+    backup_dir: "/tmp/backups"
+    remote_server_backup_dir: "/tmp/backups"
+    db_name: "sqldemo"
+    db_user: "root"
+    db_password: "demo"
+    backup_filename: "{{ db_name }}_backup_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.sql"
+
+  tasks:
+    - name: Ensure backup directory exists
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: "0755"
+
+    - name: Perform MySQL database backup
+      mysql_db:
+        state: dump
+        name: sqldemo
+        login_user: root
+        login_password: demo
+        target: "{{ backup_dir }}/{{ backup_filename }}"
+
+    - name: List backup file
+      command: ls -lh {{ backup_dir }}/{{ backup_filename }}
+      register: backup_files
+
+    - name: Display backup files
+      debug:
+        var: backup_files.stdout
+
+    - name: Fetch backup file from remote server
+      fetch:
+        src: "{{ backup_dir }}/{{ backup_filename }}"
+        dest: "{{ remote_server_backup_dir }}/{{ backup_filename }}"
+        mode: "0644"
+        owner: root
+        group: root
