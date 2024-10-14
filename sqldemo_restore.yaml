@@ -18,14 +18,6 @@
         msg: "Backup file {{ backup_file }} does not exist"
       when: not backup_check.stat.exists
 
-    # - name: Drop the existing database (optional, if you want to start fresh)
-    #   mysql_db:
-    #     name: "{{ db_name }}"
-    #     state: absent
-    #     login_user: "{{ db_user }}"
-    #     login_password: "{{ db_password }}"
-    #   ignore_errors: yes
-
     - name: Recreate the database
       mysql_db:
         name: "{{ db_name }}"
